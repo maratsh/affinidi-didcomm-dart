@@ -99,15 +99,13 @@ class AffinidiAuthorizationProvider extends AuthorizationProvider {
         body: challengeResponse.data!['data'] as Map<String, dynamic>,
       );
 
-      final encryptedMessage =
-          await DidcommMessage.packIntoSignedAndEncryptedMessages(
+      final encryptedMessage = await DidcommMessage.packIntoEncryptedMessage(
         plainTextMessage,
         keyPair: keyPair,
         didKeyId: didKeyId,
         recipientDidDocuments: [mediatorDidDocument],
         encryptionAlgorithm: EncryptionAlgorithm.a256cbc,
         keyWrappingAlgorithm: KeyWrappingAlgorithm.ecdh1Pu,
-        signer: signer,
       );
 
       final authenticateResponse = await dio.post<Map<String, dynamic>>(
