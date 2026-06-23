@@ -25,6 +25,15 @@ bool _serviceTypeMatches(ServiceType serviceType, String value) {
   return false;
 }
 
+/// Whether [uri] targets a loopback host (`localhost`, `127.0.0.1`, `::1`).
+bool _isLoopback(String uri) {
+  final parsed = Uri.tryParse(uri);
+  if (parsed == null) return false;
+  return parsed.host == 'localhost' ||
+      parsed.host == '127.0.0.1' ||
+      parsed.host == '::1';
+}
+
 /// Extension methods for [DidDocument] to support DIDComm-specific operations,
 /// such as extracting endpoints, creating transport clients, and key matching.
 extension DidDocumentExtension on DidDocument {
@@ -44,7 +53,9 @@ extension DidDocumentExtension on DidDocument {
         );
 
     final serviceEndpoint = service.getDidcommServiceEndpoints().firstWhere(
-          (endpoint) => endpoint.uri.startsWith('https://'),
+          (endpoint) =>
+              endpoint.uri.startsWith('https://') ||
+              (endpoint.uri.startsWith('http://') && _isLoopback(endpoint.uri)),
           orElse: () => throw ArgumentError(
             'Can not find https endpoint in $serviceType service',
             'didDocument',
@@ -78,7 +89,9 @@ extension DidDocumentExtension on DidDocument {
         );
 
     final serviceEndpoint = service.getDidcommServiceEndpoints().firstWhere(
-          (endpoint) => endpoint.uri.startsWith('wss://'),
+          (endpoint) =>
+              endpoint.uri.startsWith('wss://') ||
+              (endpoint.uri.startsWith('ws://') && _isLoopback(endpoint.uri)),
           orElse: () => throw ArgumentError(
             'Can not find wss endpoint in $serviceType service',
             'didDocument',
