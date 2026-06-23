@@ -45,8 +45,9 @@ class SignedMessage extends DidcommMessage {
   }) async {
     final jwsHeader = JwsHeader(
       mimeType: mediaType,
-      // TODO: clarify alg with SSI
-      algorithm: signer.signatureScheme.alg!,
+      algorithm: signer.signatureScheme.alg == 'Ed25519'
+          ? 'EdDSA'
+          : signer.signatureScheme.alg!,
       curve: signer.signatureScheme.crv,
     );
 
@@ -93,7 +94,8 @@ class SignedMessage extends DidcommMessage {
   Future<bool> areSignaturesValid() async {
     for (final signature in signatures) {
       final jwsHeader = _jwsHeaderConverter.fromJson(signature.protected);
-      final signatureScheme = SignatureScheme.fromAlg(jwsHeader.algorithm);
+      final signatureScheme = SignatureScheme.fromAlg(
+          jwsHeader.algorithm == 'EdDSA' ? 'Ed25519' : jwsHeader.algorithm);
 
       final verifier = await DidVerifier.create(
         algorithm: signatureScheme,
